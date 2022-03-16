@@ -1,5 +1,5 @@
 
-class Edge(object):
+class Node(object):
     def __init__(self, x, y):
         self.x = x
         self.y = y
@@ -12,9 +12,9 @@ class Edge(object):
 
 
 class Triangle(object):
-    def __init__(self, edges, triangles):
-        self.edges = edges
+    def __init__(self, nodes, triangles):
+        self.nodes = nodes
         self.triangles = triangles
 
     def __repr__(self):
-        return "\n({0}, {1}, {2})\n".format(*self.edges)
+        return "\n({0}, {1}, {2})\n".format(*self.nodes)
