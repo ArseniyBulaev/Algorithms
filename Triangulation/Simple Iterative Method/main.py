@@ -7,9 +7,9 @@ def main():
     b = tp.Node(1, 4)
     c = tp.Node(1, 0)
 
-    edges = [a, b, c]
+    nodes = [a, b, c]
 
-    print(cr.iterative_triangulation(edges))
+    print(cr.iterative_triangulation(nodes))
 
 
 
