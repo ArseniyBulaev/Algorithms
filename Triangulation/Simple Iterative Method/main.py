@@ -1,8 +1,15 @@
+import controller.routines as cr
+import model.types as tp
 
 
 def main():
-    pass
+    a = tp.Edge(1, 2)
+    b = tp.Edge(1, 4)
+    c = tp.Edge(1, 0)
 
+    edges = [a, b, c]
+
+    print(cr.iterative_triangulation(edges))
 
 
 
