@@ -9,3 +9,12 @@ class Edge(object):
 
     def __eq__(self, other):
         return self.x == other.x and self.y == other.y
+
+
+class Triangle(object):
+    def __init__(self, edges, triangles):
+        self.edges = edges
+        self.triangles = triangles
+
+    def __repr__(self):
+        return "({0}, {1}, {2})".format(*self.edges) + "\n"
