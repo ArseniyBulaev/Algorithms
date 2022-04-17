@@ -5,14 +5,16 @@ min_x = 0
 max_x = 10
 max_y = 0
 min_y = 10
-center_x = 5
-center_y = 5
+
 
 
 
 def plot_triangle(triangle):
 
-    nodes = [Node(node.x + center_x, node.y + center_y) for node in triangle.nodes.copy()]
+
+    nodes = triangle.nodes
+
+
 
 
     plt.plot([nodes[0].x, nodes[1].x], [nodes[0].y, nodes[1].y], "r-")
@@ -21,8 +23,8 @@ def plot_triangle(triangle):
 
 
     triangle_center = triangle.center()
-    triangle_center.x += center_x
-    triangle_center.y += center_y
+    triangle_center.x
+    triangle_center.y
 
     plt.text(triangle_center.x, triangle_center.y, triangle.number)
 
