@@ -55,6 +55,8 @@ class Triangle(object):
 
 
 	def get_opposite_node(self, edge):
+		if edge not in self.get_edges():
+			return None, -1
 		for node_index, node in enumerate(self.nodes):
 			if node != edge.first and node != edge.second:
 				return node, node_index
@@ -85,11 +87,17 @@ class Triangulation(object):
 		self.triangles = triangles
 
 	def find_nearest_triangle(self, new_node):
+		# Функция поиска ближайшего к данному узлу треугольника
+
 
 		def signed_area(a, b, c):
 			return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)
 
 		def is_split_by_edge(a, b, edge):
+			# Проверка находятся ли узлы a и b
+			# По разную сторону от ребра edge
+
+			# Возможно сортировать не нужно
 			sorted_nodes = [edge.first, edge.second]
 			sorted_nodes.sort(key=lambda node: [node.x, node.y])
 			sorted_edge = Edge(sorted_nodes[0], sorted_nodes[1])
@@ -99,16 +107,33 @@ class Triangulation(object):
 
 
 
-		def find_nearest_iter(triangle):
+		def find_nearest_recur(triangle):
+
 			for edge in triangle.get_edges():
+				# Смотрим разделены ли данным ребром
+				# центральная точка треугольника и новый узел
 				if is_split_by_edge(triangle.center, new_node, edge):
+
+					# Если разделены, то
+					# берем противоположную вершину к данному ребру
+					# и находим по ней противоположный треугольник
 					opposite_node, opposite_node_index = triangle.get_opposite_node(edge)
 					opposite_triangle = triangle.triangles[opposite_node_index]
+
+					# Если он существует
 					if opposite_triangle is not None:
-						return find_nearest_iter(opposite_triangle)
+						# Переходим в него и продолжаем поиск
+						return find_nearest_recur(opposite_triangle)
 					else:
+						# Иначе возвращаем текущий треугольник, так как
+						# вэтом случае он будет самым ближним к данному узлу
 						return triangle
 			
+			# Если дошли сюда, то
+			# центральная точка треугольника и новый узел
+			# лежат в одном треугольнике,
+			# и мы его возвращаем
 			return triangle
 
-		return find_nearest_iter(self.triangles[0])
+		# Начинаем поиск с первого треугольника триангуляции
+		return find_nearest_recur(self.triangles[0])
