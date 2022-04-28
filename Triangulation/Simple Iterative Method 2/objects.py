@@ -37,14 +37,10 @@ class Edge(object):
 				)
 
 class Triangle(object):
-	def __init__(self, nodes, triangles):
+	def __init__(self, nodes, triangles, number=None):
 		self.nodes = nodes
 		self.triangles = triangles
-
-		center_x = (self.nodes[0].x + self.nodes[1].x + self.nodes[2].x) / 3
-		center_y = (self.nodes[0].y + self.nodes[1].y + self.nodes[2].y) / 3
-
-		self.center = Node(center_x, center_y)
+		self.number = number
 
 
 	def __str__(self):
@@ -52,6 +48,11 @@ class Triangle(object):
 
 	def __repr__(self):
 		return str(self.nodes)
+
+	def get_center(self):
+		center_x = (self.nodes[0].x + self.nodes[1].x + self.nodes[2].x) / 3
+		center_y = (self.nodes[0].y + self.nodes[1].y + self.nodes[2].y) / 3
+		return Node(center_x, center_y)
 
 
 	def get_opposite_node(self, edge):
@@ -77,6 +78,7 @@ class Triangle(object):
 
 class Triangulation(object):
 
+
 	def __str__(self):
 		return "--\n{0}\n--".format("\n".join([str(triangle) for triangle in self.triangles]))
 
@@ -85,6 +87,17 @@ class Triangulation(object):
 
 	def __init__(self, triangles = []):
 		self.triangles = triangles
+		self.triangles_count = len(triangles)
+
+	def add_triangle(self, triangle):
+		triangle.number = self.triangles_count
+		self.triangles.append(triangle)
+		self.triangles_count += 1
+
+
+	def remove_triangle(self, triangle):
+		self.triangles.remove(triangle)
+
 
 	def find_nearest_triangle(self, new_node):
 		# Функция поиска ближайшего к данному узлу треугольника
@@ -112,7 +125,7 @@ class Triangulation(object):
 			for edge in triangle.get_edges():
 				# Смотрим разделены ли данным ребром
 				# центральная точка треугольника и новый узел
-				if is_split_by_edge(triangle.center, new_node, edge):
+				if is_split_by_edge(triangle.get_center(), new_node, edge):
 
 					# Если разделены, то
 					# берем противоположную вершину к данному ребру

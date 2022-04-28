@@ -1,48 +1,40 @@
 from objects import Node, Edge, Triangle, Triangulation
-
-
+import triangulation as triang_m
+import plot as my_plot
 
 def main():
-	nodes1 = [Node(0,0), Node(10,10), Node(0,10)]
-	nodes2 = [Node(0,0), Node(10,0), Node(10,10)]
-	edge = Edge(Node(0,0), Node(10,10))
+	nodes = [Node(0,0), Node(5,10), Node(0,10)]
+	new_node = Node(2, 8)
+	base_triangle = Triangle(nodes, [None, None, None])
+	edges = base_triangle.get_edges()
+	triangulation = Triangulation()
+	triangulation.add_triangle(base_triangle)
 
-	triangle1 = Triangle(nodes1, [None, None, None])
-	triangle2 = Triangle(nodes2, [None, None, None])
+	my_plot.plot_triangulation(triangulation)
+	my_plot.show()
 
-	
+	new_triangles = triang_m.inside_case(base_triangle, new_node)
 
-	
-
-	n_1, n_i_1 = triangle1.get_opposite_node(edge)
-	n_2, n_i_2 = triangle2.get_opposite_node(edge)
-
-
-	triangle2.triangles[n_i_2] = triangle1
-	triangle1.triangles[n_i_1] = triangle2
-
-	print(triangle1.triangles)
-	print(triangle2.triangles)
+	triangulation.remove_triangle(base_triangle)
 
 
+	for new_triangle in new_triangles:
+		triangulation.add_triangle(new_triangle)
 
 
-	triangulation = Triangulation([triangle1, triangle2])
+	my_plot.plot_triangulation(triangulation)
 
+	test_nodes = [Node(1, 6), Node(2, 5), Node(3, 9)]
 
-
-	nearest_1 = triangulation.find_nearest_triangle(Node(2, 5))
-	nearest_2 = triangulation.find_nearest_triangle(Node(5, 2))
-
-	print(nearest_1)
-	print(nearest_2)
-	
-
-
+	for node in test_nodes:
+		my_plot.plot_node(node)
+		nearest_triangle = triangulation.find_nearest_triangle(node)
+		my_plot.plot_triangulation(triangulation)
+		my_plot.plot_triangle(nearest_triangle, color="red")
+		my_plot.show()
 
 
 	
-
 
 if __name__ == "__main__":
 	main()

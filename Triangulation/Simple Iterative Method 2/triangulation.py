@@ -1,10 +1,12 @@
 from objects import Node, Edge, Triangle, Triangulation
+from enum import Enum
 import copy
 
 
 
 
 def add_inner_node(triangle, new_node):
+	# OLD 
 	new_triangles = []
 
 	# Создаём новые треугольники, проходя по всем рёбрам
@@ -58,22 +60,24 @@ def add_inner_node(triangle, new_node):
 
 	return new_triangles
 
-
-
 def connect_along_edge(tr1, tr2, edge):
 	# Соединяет треугольники по ребру
-	tr_1_opp_node, tr_1_opp_node_indx = tr1.get_opposite_node(edge)
-	tr_2_opp_node, tr_2_opp_node_indx = tr2.get_opposite_node(edge)
+	tr_1_opp_node, tr_1_opp_node_index = tr1.get_opposite_node(edge)
+	tr_2_opp_node, tr_2_opp_node_index = tr2.get_opposite_node(edge)
 
-	if tr_1_opp_node not is None and tr_2_opp_node not is None:
-		tr1.triangles[tr_1_opp_node] = tr2
-		tr2.triangles[tr_2_opp_node] = tr1
+	# Вроде как не обязательное условие.
+	# Не будет выполнено если edge не принадлежит tr1 или tr2
+	if tr_1_opp_node is not None and tr_2_opp_node is not None:
+		tr1.triangles[tr_1_opp_node_index] = tr2
+		tr2.triangles[tr_2_opp_node_index] = tr1
+
 		return True
 	else:
 		return False
 
 def get_joint_edge_pair(triangles, edge):
 	# Возвращает смежную по данному ребру пару треугольников
+	# (Данные треугольники пока не связаны друг с другом)
 	joint_pair = []
 
 	for triangle in triangles:
@@ -86,11 +90,107 @@ def get_joint_edge_pair(triangles, edge):
 
 	return None
 
-def create_triangle_base_on(base_triangle, base_edge, base_node):
+def create_triangle_base_on(base_triangle, base_edge, new_node):
 	# Создаёт новый треугольник внутри base_triangle c
-	# основанием base_edge и дополнитеоьной верншиной base_node
+	# основанием base_edge и дополнитеоьной вершиной new_node
 	
-	# Получаем вершину противоположную 
-	opp_node, opp_node_indx = base_triangle.get_opposite_node(base_edge)
+	# Получаем вершину противоположную ребру base_edge в base_triangle
+	opp_node, opp_node_index = base_triangle.get_opposite_node(base_edge)
+
+
+	# Получаем треугольник, лежащий напротив вершины opp_node
+	opp_triangle = base_triangle.triangles[opp_node_index]
 	
-	new_triangle = copy.copy(base_triangle)
+	# Создаём новый треугольник на основе старого 
+	new_triangle = copy.deepcopy(base_triangle)
+
+	# Меняем противоположную к ребру base_edge вершину на new_node
+	new_triangle.nodes[opp_node_index] = new_node
+
+	#Если opp_triangle существует
+	if opp_triangle is not None:
+
+		# Получаем вершину противоположную ребру base_edge в opp_triangle
+		opp_node, opp_node_index = opp_triangle.get_opposite_node(base_edge)
+
+		# Связываем opp_triangle с base_triangle
+		opp_triangle[opp_node_index] = new_triangle
+
+	return new_triangle
+
+def check_node_possition_relative_triangle(triangle, node):
+	pass
+
+
+def outside_case(triangulation, nearest_triangle, new_node):
+	pass
+
+def on_edge_case(triangle, new_node, occupied_edge):
+	pass
+
+def inside_case(old_triangle, new_node):
+	new_triangles = []
+
+	# Создаём новые треугольники, проходя по всем рёбрам
+	for edge in old_triangle.get_edges():
+		new_triangle = create_triangle_base_on(old_triangle, edge, new_node)
+		new_triangles.append(new_triangle)
+
+	node_1, node_2, node_3 = old_triangle.nodes
+
+
+	# Связываем вновь созданные треугольники
+	for edge in [Edge(node_1, new_node), Edge(node_2, new_node), Edge(node_3, new_node)]:
+
+		# Ищем смежные по данному ребру треугольники
+		joint_triangles = get_joint_edge_pair(new_triangles, edge)
+		tr1, tr2 = joint_triangles
+
+		# Выполняем из связывание по ребру edge
+		connect_along_edge(tr1, tr2, edge)
+
+	return new_triangles
+
+
+def delonoy_check(triangle):
+	pass
+
+def flip(triangle, node):
+	pass
+
+
+def simple_iterative_method(nodes, triangulation=None):
+
+	class NodePos(Enum):
+		OUTSIDE_TRIANGLE = 0
+		ON_POINT = 1
+		ON_EDGE = 2
+		INSIDE_TRIANGLE = 3
+
+
+	if triangulation is None:
+		triangulation = Triangulation()
+
+	triangulation.add_triangle(Triangle(nodes[0], nodes[1], nodes[2]))
+
+	for node in nodes[3:]:
+		nearest_triangle = find_nearest_triangle(node)
+
+		info = check_node_possition_relative_triangle(nearest_triangle, node)
+
+		if NodePos(info["possition"]) == NodePos.OUTSIDE_TRIANGLE:
+			new_triangles = outside_case(triangulation, nearest_triangle, node)
+		elif NodePos(info["possition"]) == NodePos.ON_POINT:
+			continue
+		elif NodePos(info["possition"]) == NodePos.ON_EDGE:
+			new_triangles = on_edge_case(triangle, node, info["occupied edge"])
+		elif NodePos(info["possition"]) == NodePos.INSIDE_TRIANGLE:
+			new_triangles = inside_case(triangle, node)
+
+		for new_triangle in new_triangles:
+			node, is_node_correct = delonoy_check(new_triangle)
+
+			if not is_node_correct:
+				flip(new_triangle, bad_node)
+
+	return triangulation
