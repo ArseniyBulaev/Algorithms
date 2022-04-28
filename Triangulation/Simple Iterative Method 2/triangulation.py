@@ -2,16 +2,7 @@ from objects import Node, Edge, Triangle, Triangulation
 import copy
 
 
-def get_joint_edge_pair(triangles, edge):
-	# Возвращает смежную по данному ребру пару треугольников
-	joint_pair = []
 
-	for triangle in triangles:
-		opp_node, opp_node_index = triangle.get_opposite_node(edge)
-		if opp_node is not None:
-			joint_pair.append(triangle)
-
-	return joint_pair
 
 def add_inner_node(triangle, new_node):
 	new_triangles = []
@@ -66,3 +57,40 @@ def add_inner_node(triangle, new_node):
 
 
 	return new_triangles
+
+
+
+def connect_along_edge(tr1, tr2, edge):
+	# Соединяет треугольники по ребру
+	tr_1_opp_node, tr_1_opp_node_indx = tr1.get_opposite_node(edge)
+	tr_2_opp_node, tr_2_opp_node_indx = tr2.get_opposite_node(edge)
+
+	if tr_1_opp_node not is None and tr_2_opp_node not is None:
+		tr1.triangles[tr_1_opp_node] = tr2
+		tr2.triangles[tr_2_opp_node] = tr1
+		return True
+	else:
+		return False
+
+def get_joint_edge_pair(triangles, edge):
+	# Возвращает смежную по данному ребру пару треугольников
+	joint_pair = []
+
+	for triangle in triangles:
+		opp_node, opp_node_index = triangle.get_opposite_node(edge)
+		if opp_node is not None:
+			joint_pair.append(triangle)
+
+		if len(joint_pair) == 2:
+			return joint_pair
+
+	return None
+
+def create_triangle_base_on(base_triangle, base_edge, base_node):
+	# Создаёт новый треугольник внутри base_triangle c
+	# основанием base_edge и дополнитеоьной верншиной base_node
+	
+	# Получаем вершину противоположную 
+	opp_node, opp_node_indx = base_triangle.get_opposite_node(base_edge)
+	
+	new_triangle = copy.copy(base_triangle)
