@@ -18,6 +18,7 @@ class Node(object):
 	def __eq__(self, other):
 		return self.x == other.x and self.y == other.y
 
+
 class Edge(object):
 	def __init__(self, first, second):
 		self.first = first
@@ -36,12 +37,12 @@ class Edge(object):
 					(self.first == other.second and self.second == other.first)
 				)
 
+
 class Triangle(object):
 	def __init__(self, nodes, triangles, number=None):
 		self.nodes = nodes
 		self.triangles = triangles
 		self.number = number
-
 
 	def __str__(self):
 		return str(self.nodes)
@@ -53,7 +54,6 @@ class Triangle(object):
 		center_x = (self.nodes[0].x + self.nodes[1].x + self.nodes[2].x) / 3
 		center_y = (self.nodes[0].y + self.nodes[1].y + self.nodes[2].y) / 3
 		return Node(center_x, center_y)
-
 
 	def get_opposite_node(self, edge):
 		if edge not in self.get_edges():
@@ -70,7 +70,7 @@ class Triangle(object):
 		edges = [
 			Edge(self.nodes[0], self.nodes[1]),
 			Edge(self.nodes[1], self.nodes[2]),
-			Edge(self.nodes[0], self.nodes[2])
+			Edge(self.nodes[2], self.nodes[0])
 		]
 
 		return edges
@@ -78,14 +78,13 @@ class Triangle(object):
 
 class Triangulation(object):
 
-
 	def __str__(self):
 		return "--\n{0}\n--".format("\n".join([str(triangle) for triangle in self.triangles]))
 
 	def __repr__(self):
 		return "--\n{0}\n--".format("\n".join([str(triangle) for triangle in self.triangles]))
 
-	def __init__(self, triangles = []):
+	def __init__(self, triangles=[]):
 		self.triangles = triangles
 		self.triangles_count = len(triangles)
 
@@ -94,14 +93,18 @@ class Triangulation(object):
 		self.triangles.append(triangle)
 		self.triangles_count += 1
 
-
 	def remove_triangle(self, triangle):
 		self.triangles.remove(triangle)
 
+	def find_triangle_by_edge(self, edge):
+		for triangle in self.triangles:
+			edges = triangle.get_edges()
+			if edge in edges:
+				return triangle
+		return None
 
 	def find_nearest_triangle(self, new_node):
 		# Функция поиска ближайшего к данному узлу треугольника
-
 
 		def signed_area(a, b, c):
 			return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)
@@ -109,16 +112,7 @@ class Triangulation(object):
 		def is_split_by_edge(a, b, edge):
 			# Проверка находятся ли узлы a и b
 			# По разную сторону от ребра edge
-
-			# Возможно сортировать не нужно
-			sorted_nodes = [edge.first, edge.second]
-			sorted_nodes.sort(key=lambda node: [node.x, node.y])
-			sorted_edge = Edge(sorted_nodes[0], sorted_nodes[1])
-
-			return (signed_area(sorted_edge.first, sorted_edge.second, a)
-			* signed_area(sorted_edge.first, sorted_edge.second, b) <= 0)
-
-
+			return signed_area(edge.first, edge.second, a) * signed_area(edge.first, edge.second, b) < 0
 
 		def find_nearest_recur(triangle):
 

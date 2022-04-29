@@ -14,13 +14,14 @@ def plot_triangle(triangle, color="green"):
     if triangle.number is not None:
         plt.text(triangle_center.x, triangle_center.y, triangle.number)
 
+
 def plot_triangulation(triangulation):
-	for triangle in triangulation.triangles:
-		plot_triangle(triangle)
+    for triangle in triangulation.triangles:
+        plot_triangle(triangle)
+
 
 def plot_node(node, color="blue"):
     plt.plot([node.x], [node.y], "o", color=color)
-
 
 
 def show():
