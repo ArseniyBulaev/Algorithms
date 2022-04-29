@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 
 def main():
-	nodes = [Node(5, 10), Node(0, 10), Node(0, 0), Node(2, 8), Node(2, 5), Node(2, 6), Node(5, 0), Node(4, 2)]
+	nodes = [Node(5, 10), Node(0, 10), Node(0, 0), Node(2, 8), Node(1, 6)]
 	triang_m.simple_iterative_method(nodes)
 
 

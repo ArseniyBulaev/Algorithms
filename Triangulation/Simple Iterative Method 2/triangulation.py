@@ -5,60 +5,6 @@ import copy
 from scipy.spatial import ConvexHull, convex_hull_plot_2d
 
 
-def add_inner_node(triangle, new_node):
-	# OLD 
-	new_triangles = []
-
-	# Создаём новые треугольники, проходя по всем рёбрам
-	for edge in triangle.get_edges():
-
-		# Для каждого ребра получаем противоположную вершину
-		opp_node, opp_node_index = triangle.get_opposite_node(edge)
-		
-		# Создаём новый треугольник из исходного
-		new_triangle = copy.deepcopy(triangle)
-		new_triangle.triangles = [None, None, None]
-		# Меняем в новом треугольнике противолежащую вершину для данного ребра
-		# на новую вершину
-		new_triangle.nodes[opp_node_index] = new_node
-
-		# Если для старого треугольника 
-		# существует смежный по данному ребру треугольник, то
-		# связываем его с новым
-
-		opp_triangle = triangle.triangles[opp_node_index]
-
-		if opp_triangle is not None:
-			# Связь новый -> старый
-			new_triangle.triangles[opp_node_index] = opp_triangle
-			opp_node, opp_node_index = opp_triangle.get_opposite_node(edge)
-			# Связь старый -> новый
-			opp_triangle.triangles[opp_node_index] = new_triangle
-
-		new_triangles.append(new_triangle)
-
-	node_1, node_2, node_3 = triangle.nodes
-
-	# Связываем вновь созданные треугольники
-	for edge in [Edge(node_1, new_node), Edge(node_2, new_node), Edge(node_3, new_node)]:
-
-		# Ищем смежные по данному ребру треугольники
-		joint_triangles = get_joint_edge_pair(new_triangles, edge)
-
-		# Если таких два, то связываем их
-		# (Так-то if не нужен, но пусть будет)
-		if len(joint_triangles) == 2:
-			triangle1, triangle2 = joint_triangles
-
-			n_1, n_i_1 = triangle1.get_opposite_node(edge)
-			n_2, n_i_2 = triangle2.get_opposite_node(edge)
-
-			triangle2.triangles[n_i_2] = triangle1
-			triangle1.triangles[n_i_1] = triangle2
-
-	return new_triangles
-
-
 def connect_along_edge(tr1, tr2, edge):
 	# Соединяет треугольники по ребру
 	tr_1_opp_node, tr_1_opp_node_index = tr1.get_opposite_node(edge)
@@ -172,7 +118,7 @@ def check_node_position_relative_triangle(triangle, new_node):
 	if check_on_point_case(triangle, new_node, info):
 		return info
 
-	# Случай 2 (new_node лежит на ребре  треугольника)
+	# Случай 2 (new_node лежит на ребре треугольника)
 	if check_on_edge_case(triangle, new_node, info):
 		return info
 
@@ -203,41 +149,77 @@ def outside_case(triangulation, nodes, new_node):
 		joint_triangle = triangulation.find_triangle_by_edge(visible_edge)
 		new_triangle = Triangle([visible_node_1, visible_node_2, new_node], [None, None, None])
 
-		# my_plot.plot_triangulation(triangulation)
-		# my_plot.plot_triangle(joint_triangle, color="orange")
-		# my_plot.plot_triangle(new_triangle, color="orange")
-		# my_plot.show()
-
 		# Выполняем их связывание по ребру visible_edge
 		connect_along_edge(joint_triangle, new_triangle, visible_edge)
+
+		if len(new_triangles) > 0:
+			adjacent_triangle = new_triangles[-1]
+			for possible_adjacent_edge in new_triangle.get_edges():
+				if possible_adjacent_edge != visible_edge:
+					if get_joint_edge_pair([adjacent_triangle, new_triangle], possible_adjacent_edge) is not None:
+						connect_along_edge(adjacent_triangle, new_triangle, possible_adjacent_edge)
 
 		new_triangles.append(new_triangle)
 
 	return new_triangles
 
 
-def on_edge_case(old_triangle, new_node, occupied_edge):
-	new_triangles = []
+def on_edge_case(base_triangle, new_node, occupied_edge, triangulation):
 
-	# Создаём новые треугольники проходом по всем рёбрам кроме того, на котором находится точка
-	for edge in old_triangle.get_edges():
-		if edge == occupied_edge:
-			continue
-		new_triangle = create_triangle_base_on(old_triangle, edge, new_node)
-		new_triangles.append(new_triangle)
+	def split_triangle(triangle):
 
-	node_1, node_2, node_3 = old_triangle.nodes
+		local_new_triangles = []
 
-	# Получаем сомесное ребро
-	opp_node, opp_node_index = old_triangle.get_opposite_node(occupied_edge)
-	joint_edge = Edge(opp_node, new_node)
+		# Создаём новые треугольники проходом по всем рёбрам кроме того, на котором находится точка
+		for edge in triangle.get_edges():
+			if edge == occupied_edge:
+				continue
+			new_triangle = create_triangle_base_on(triangle, edge, new_node)
+			local_new_triangles.append(new_triangle)
 
-	# Ищем смежные по данному ребру треугольники
-	joint_triangles = get_joint_edge_pair(new_triangles, joint_edge)
-	tr1, tr2 = joint_triangles
+		node_1, node_2, node_3 = triangle.nodes
 
-	# Выполняем из связывание по ребру edge
-	connect_along_edge(tr1, tr2, joint_edge)
+		# Получаем совместное ребро
+		opp_node_l, opp_node_index_l = triangle.get_opposite_node(occupied_edge)
+		joint_edge = Edge(opp_node_l, new_node)
+
+		# Ищем смежные по данному ребру треугольники
+		local_joint_triangles = get_joint_edge_pair(local_new_triangles, joint_edge)
+
+		tr1_l, tr2_l = local_joint_triangles
+
+		# Выполняем их связывание по ребру edge
+		connect_along_edge(tr1_l, tr2_l, joint_edge)
+
+		return local_new_triangles
+
+	opp_node, opp_node_index = base_triangle.get_opposite_node(occupied_edge)
+	adjacent_triangle = base_triangle.triangles[opp_node_index]
+
+	new_triangles = split_triangle(base_triangle)
+	new_triangles += split_triangle(adjacent_triangle)
+
+	first_part_of_occupied_edge = Edge(occupied_edge.first, new_node)
+	second_part_of_occupied_edge = Edge(new_node, occupied_edge.second)
+
+	triangles_to_join = new_triangles.copy()
+
+	for edge in [first_part_of_occupied_edge, second_part_of_occupied_edge]:
+		# Ищем смежные по данному ребру треугольники
+		joint_triangles = get_joint_edge_pair(triangles_to_join, edge)
+
+		tr1, tr2 = joint_triangles
+
+		# Выполняем их связывание по ребру edge
+		connect_along_edge(tr1, tr2, edge)
+
+		triangles_to_join.remove(tr1)
+		triangles_to_join.remove(tr2)
+
+	#for local_triangle in new_triangles:
+		# my_plot.plot_triangulation(triangulation)
+		# my_plot.plot_triangle_with_neighbors(local_triangle, triangulation)
+		# my_plot.show()
 
 	return new_triangles
 
@@ -259,7 +241,7 @@ def inside_case(old_triangle, new_node):
 		joint_triangles = get_joint_edge_pair(new_triangles, edge)
 		tr1, tr2 = joint_triangles
 
-		# Выполняем из связывание по ребру edge
+		# Выполняем их связывание по ребру edge
 		connect_along_edge(tr1, tr2, edge)
 
 	return new_triangles
@@ -286,11 +268,16 @@ def simple_iterative_method(nodes, triangulation=None):
 
 	triangulation.add_triangle(Triangle(nodes[:3], [None, None, None]))
 
-	my_plot.plot_triangulation(triangulation)
-	my_plot.show()
+	# my_plot.plot_triangulation(triangulation)
+	# my_plot.show()
 
 	for i in range(3, len(nodes)):
 		node = nodes[i]
+
+		my_plot.plot_node(node)
+		my_plot.plot_triangulation(triangulation)
+		my_plot.show()
+
 		nearest_triangle = triangulation.find_nearest_triangle(node)
 		info = check_node_position_relative_triangle(nearest_triangle, node)
 
@@ -301,8 +288,12 @@ def simple_iterative_method(nodes, triangulation=None):
 			continue
 
 		elif NodePos(info["position"]) == NodePos.ON_EDGE:
-			new_triangles = on_edge_case(nearest_triangle, node, info["occupied edge"])
+			new_triangles = on_edge_case(nearest_triangle, node, info["occupied edge"], triangulation)
+			opp_node, opp_node_index = nearest_triangle.get_opposite_node(info["occupied edge"])
+			adjacent_triangle = nearest_triangle.triangles[opp_node_index]
+
 			triangulation.remove_triangle(nearest_triangle)
+			triangulation.remove_triangle(adjacent_triangle)
 
 		elif NodePos(info["position"]) == NodePos.INSIDE_TRIANGLE:
 			new_triangles = inside_case(nearest_triangle, node)
