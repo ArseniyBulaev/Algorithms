@@ -55,16 +55,31 @@ class Triangle(object):
 		center_y = (self.nodes[0].y + self.nodes[1].y + self.nodes[2].y) / 3
 		return Node(center_x, center_y)
 
-	def get_opposite_node(self, edge):
+	def get_opposite_node(self, edge, return_index=True):
 		if edge not in self.get_edges():
-			return None, -1
+			if return_index:
+				return None, -1
+			else:
+				return None
 		for node_index, node in enumerate(self.nodes):
 			if node != edge.first and node != edge.second:
-				return node, node_index
+				if return_index:
+					return node, node_index
+				else:
+					return node
 
-	def get_opposite_triangle(self, node):
+	def get_opposite_triangle(self, node, return_index=True):
 		node_index = self.nodes.index(node)
-		return self.triangles[node_index], node_index
+		if return_index:
+			return self.triangles[node_index], node_index
+		else:
+			return self.triangles[node_index]
+
+	def get_opposite_edge(self, node):
+		nodes_copy = self.nodes.copy()
+		nodes_copy.remove(node)
+		first, second = nodes_copy
+		return Edge(first, second)
 
 	def get_edges(self):
 		edges = [
