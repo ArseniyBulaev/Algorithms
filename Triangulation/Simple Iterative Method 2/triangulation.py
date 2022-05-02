@@ -67,7 +67,7 @@ def create_triangle_base_on(base_triangle, base_edge, new_node):
 def check_on_point_case(triangle, new_node, info):
     for node in triangle.nodes:
         if node == new_node:
-            info["position"] = 0
+            info["position"] = 1
             return True
 
     return False
@@ -244,7 +244,45 @@ def inside_case(old_triangle, new_node):
 
 
 def delaunay_check(triangle):
-    return 2, True
+    def is_in_circumscribed_circle(base_triangle, tested_node):
+
+        def sign(number):
+            if number > 0:
+                return 1
+            else:
+                return -1
+
+        node_1, node_2, node_3 = base_triangle.nodes
+
+        x0, y0 = tested_node.x, tested_node.y
+        x1, y1 = node_1.x, node_1.y
+        x2, y2 = node_2.x, node_2.y
+        x3, y3 = node_3.x, node_3.y
+
+        a = x1*y2 + y1*x3 + y3*x2 - x3*y2 - y3*x1 - x2*y1
+
+        b = (x2 ** 2 + y2 ** 2) * y3 - (x3 ** 2 + y3 ** 2) * y2 - (x1 ** 2 + y1 ** 2) * y3 \
+            + (x3 ** 2 + y3 ** 2) * y1 + (x1 ** 2 + y1 ** 2) * y2 - (x2 ** 2 + y2 ** 2) * y1
+
+        c = (x2 ** 2 + y2 ** 2) * x3 - (x3 ** 2 + y3 ** 2) * x2 - (x1 ** 2 + y1 ** 2) * x3 \
+            + (x3 ** 2 + y3 ** 2) * x1 + (x1 ** 2 + y1 ** 2) * x2 - (x2 ** 2 + y2 ** 2) * x1
+
+        d = y1 * ((x2 ** 2 + y2 ** 2) * x3 - (x3 ** 2 + y3 ** 2) * x2)\
+            + y2 * (-(x1 ** 2 + y1 ** 2) * x3 + (x3 ** 2 + y3 ** 2) * x1)\
+            + y3 * ((x1 ** 2 + y1 ** 2) * x2 - (x2 ** 2 + y2 ** 2) * x1)
+
+        return (a*(x0**2 + y0**2) - b*x0 + c*y0 - d) * sign(a) < 0
+
+    for node in triangle.nodes:
+        opposite_edge = triangle.get_opposite_edge(node)
+        opposite_triangle = triangle.get_opposite_triangle(node, return_index=False)
+        if opposite_triangle is not None:
+            node_to_check = opposite_triangle.get_opposite_node(opposite_edge, return_index=False)
+
+            if is_in_circumscribed_circle(triangle, node_to_check):
+                return opposite_edge, False
+
+    return None, True
 
 
 def flip(target, flipping_edge):
@@ -278,21 +316,23 @@ def flip(target, flipping_edge):
     relink_neighbor_edge = neighbor.get_opposite_edge(relink_neighbor_node)
     relink_neighbor_triangle = neighbor.get_opposite_triangle(relink_neighbor_node, return_index=False)
 
-    # Осуществляем переворот ребра
+    # # Осуществляем переворот ребра
     target.nodes[flip_target_node_index] = opp_node_in_neighbor
     neighbor.nodes[flip_neighbor_node_index] = opp_node_in_target
     # Связываем треугольники по правильному ребру
     connect_along_edge(target, neighbor, Edge(opp_node_in_target, opp_node_in_neighbor))
+
     # Переподвязываем старый треугольник в target
     if relink_neighbor_triangle is not None:
         connect_along_edge(target, relink_neighbor_triangle, relink_neighbor_edge)
     else:
-        target.triangles[relink_neighbor_node_index] = None
+        target.nodes[neighbor_index]
+        target.triangles[neighbor_index] = None
     # Переподвязываем старый треугольник в neighbor
     if relink_target_triangle is not None:
         connect_along_edge(neighbor, relink_target_triangle, relink_target_edge)
     else:
-        neighbor.triangles[relink_target_node_index] = None
+        neighbor.triangles[target_index] = None
 
 
 def simple_iterative_method(nodes, triangulation=None):
@@ -304,13 +344,13 @@ def simple_iterative_method(nodes, triangulation=None):
 
     if triangulation is None:
         triangulation = Triangulation()
-
-    triangulation.add_triangle(Triangle(nodes[:3], [None, None, None]))
+        triangulation.add_triangle(Triangle(nodes[:3], [None, None, None]))
+        del nodes[:3]
 
     # my_plot.plot_triangulation(triangulation)
     # my_plot.show()
 
-    for i in range(3, len(nodes)):
+    for i in range(len(nodes)):
         node = nodes[i]
 
         # my_plot.plot_node(node)
@@ -319,6 +359,8 @@ def simple_iterative_method(nodes, triangulation=None):
 
         nearest_triangle = triangulation.find_nearest_triangle(node)
         info = check_node_position_relative_triangle(nearest_triangle, node)
+
+        print(info)
 
         if NodePos(info["position"]) == NodePos.OUTSIDE_TRIANGLE:
             new_triangles = outside_case(triangulation, nodes[:i], node)
@@ -339,11 +381,23 @@ def simple_iterative_method(nodes, triangulation=None):
             triangulation.remove_triangle(nearest_triangle)
 
         for new_triangle in new_triangles:
-            triangulation.add_triangle(new_triangle)
-            node, is_node_correct = delaunay_check(new_triangle)
+            my_plot.plot_triangulation(triangulation, plot_nodes=True)
+            my_plot.plot_triangle_with_neighbors(new_triangle)
+            my_plot.show()
+            for sub_triangle in new_triangle.triangles:
+                my_plot.plot_triangulation(triangulation, plot_nodes=True)
+                my_plot.plot_triangle_with_neighbors(sub_triangle)
+                my_plot.show()
 
-            if not is_node_correct:
-                flip(new_triangle, node)
+        for new_triangle in new_triangles:
+            flipping_edge, is_correct = delaunay_check(new_triangle)
+
+            if not is_correct:
+                print("FLIP")
+                pass
+                flip(new_triangle, flipping_edge)
+
+            triangulation.add_triangle(new_triangle)
 
     # my_plot.plot_triangulation(triangulation)
     # my_plot.show()

@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from objects import Triangle, Edge, Node
 
 
-def plot_triangle(triangle, color="green", plot_number=True, plot_nodes=False, lw=1):
+def plot_triangle(triangle, color="orange", plot_number=True, plot_nodes=False, lw=1):
 
     edges = triangle.get_edges()
     for edge in edges:
@@ -17,12 +17,18 @@ def plot_triangle(triangle, color="green", plot_number=True, plot_nodes=False, l
             plot_node(node, plot_text=True)
 
 
+
 def plot_triangle_with_neighbors(triangle, plot_nodes=False):
 
+    sub_triangles_colors = ["green", "yellow", "blue"]
 
-    for sub_triangle in triangle.triangles:
+    for i, sub_triangle in enumerate(triangle.triangles):
         if sub_triangle is not None:
-            plot_triangle(sub_triangle, color="orange", plot_number=False, plot_nodes=plot_nodes, lw=2)
+            plot_triangle(sub_triangle,
+                          color=sub_triangles_colors[i],
+                          plot_number=False,
+                          plot_nodes=plot_nodes,
+                          lw=2)
 
     plot_triangle(triangle, color="red", plot_number=False, plot_nodes=plot_nodes)
 
