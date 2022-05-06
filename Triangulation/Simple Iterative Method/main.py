@@ -1,15 +1,13 @@
-from objects import Node, Edge, Triangle, Triangulation
+from objects import Node
 import triangulation as triang_m
 import plot as my_plot
-from scipy.spatial import ConvexHull, convex_hull_plot_2d
-import matplotlib.pyplot as plt
-import experiments as ex
 import random
+import time
 
 
 def main():
 	plot_nodes = False
-	nodes_count = 500
+	nodes_count = 1000
 	a, b = 0, 10000
 	# nodes = [
 	# 	Node(5, 10),
@@ -27,18 +25,27 @@ def main():
 	# 	Node(0, 5),
 	# 	Node(5, 0),
 	# 	Node(5, 0),
-	# 	Node(2, 2)
+	# 	Node(2, 2),
+	# 	Node(5, 0),
+	# 	Node(5, 0),
+	# 	Node(5, 0),
+	# 	Node(5, 4),
+	# 	Node(5, 6)
 	# ]
 
 	nodes = [Node(random.randint(a, b), random.randint(a, b)) for i in range(nodes_count)]
 
+	start = time.perf_counter()
 	triangulation = triang_m.simple_iterative_method(nodes)
+	end = time.perf_counter()
+
+	print("Calculation time: ", end - start)
 
 	my_plot.plot_triangulation(triangulation, plot_nodes=plot_nodes)
 	my_plot.show()
 
-	for triangle in triangulation.triangles:
-		print(triang_m.delaunay_check(triangle))
+	# for triangle in triangulation.triangles:
+	# 	print(triang_m.delaunay_check(triangle))
 
 
 if __name__ == "__main__":
