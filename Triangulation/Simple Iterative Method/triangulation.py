@@ -15,7 +15,6 @@ def connect_along_edge(tr1, tr2, edge):
     if tr_1_opp_node is not None and tr_2_opp_node is not None:
         tr1.triangles[tr_1_opp_node_index] = tr2
         tr2.triangles[tr_2_opp_node_index] = tr1
-
         return True
     else:
         return False
@@ -111,7 +110,8 @@ def outside_case(triangulation, nodes, new_node):
         new_triangle = Triangle([visible_node_1, visible_node_2, new_node], [None, None, None])
 
         # Выполняем их связывание по ребру visible_edge
-        connect_along_edge(joint_triangle, new_triangle, visible_edge)
+        if joint_triangle is not None:
+            connect_along_edge(joint_triangle, new_triangle, visible_edge)
 
         if len(new_triangles) > 0:
             adjacent_triangle = new_triangles[-1]
@@ -335,14 +335,14 @@ def simple_iterative_method(nodes, triangulation=None):
         for new_triangle in new_triangles:
             triangulation.add_triangle(new_triangle)
 
-        for new_triangle in new_triangles:
-            flipping_edge, is_correct = delaunay_check(new_triangle)
-            if not is_correct:
-                flip(new_triangle, flipping_edge)
+        triangles_to_check = new_triangles.copy()
 
-        for triangle in triangulation.triangles:
+        for triangle in triangles_to_check:
             flipping_edge, is_correct = delaunay_check(triangle)
             if not is_correct:
                 flip(triangle, flipping_edge)
+                for sub_triangle in triangle.triangles:
+                    if sub_triangle is not None:
+                        triangles_to_check.append(sub_triangle)
 
     return triangulation
