@@ -1,3 +1,5 @@
+import random
+
 # () - Node
 # <> - Edge
 # [] - Triangle
@@ -91,32 +93,6 @@ class Triangle(object):
         ]
         return edges
 
-    def node_position(self, node):
-        def triangle_area(n1, n2, n3):
-            s = 1/2 * (n1.x*(n2.y - n3.y) + n2.x*(n3.y - n1.y) + n3.x*(n1.y - n2.y))
-            return s
-
-        def is_inside_case():
-            nodes = self.nodes
-
-            base_triangle_area = triangle_area(nodes[0], nodes[1], nodes[2])
-            sub_triangle1_area = triangle_area(node, nodes[1], nodes[2])
-            if sub_triangle1_area < 0:
-                print("AAA")
-            sub_triangle2_area = triangle_area(nodes[0], node, nodes[2])
-            if sub_triangle2_area < 0:
-                print("AAA")
-            sub_triangle3_area = triangle_area(nodes[0], nodes[1], node)
-            if sub_triangle3_area < 0:
-                print("AAA")
-
-            if base_triangle_area == (sub_triangle1_area + sub_triangle2_area + sub_triangle3_area):
-                return True
-            else:
-                return False
-
-        return is_inside_case()
-
 
 class Triangulation(object):
 
@@ -176,7 +152,7 @@ class Triangulation(object):
                         return recursive_search(opposite_triangle)
                     else:
                         # Иначе возвращаем текущий треугольник, так как
-                        # вэтом случае он будет самым ближним к данному узлу
+                        # в этом случае он будет самым ближним к данному узлу
                         return triangle
 
             # Если дошли сюда, то
@@ -185,5 +161,8 @@ class Triangulation(object):
             # и мы его возвращаем
             return triangle
 
-        # Начинаем поиск с первого треугольника триангуляции
-        return recursive_search(self.triangles[0])
+        # Начинаем поиск со случайного треугольника триангуляции
+        # Индекс случайного треугольника из триангуляции
+        rand_index = random.randint(0, len(self.triangles) - 1)
+
+        return recursive_search(self.triangles[rand_index])

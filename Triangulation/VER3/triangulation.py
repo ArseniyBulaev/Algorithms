@@ -48,7 +48,7 @@ def create_triangle_base_on(base_triangle, base_edge, new_node):
     opp_triangle = base_triangle.triangles[opp_node_index]
 
     # Создаём новый треугольник на основе старого
-    new_triangle = copy.deepcopy(base_triangle)
+    new_triangle = Triangle(base_triangle.nodes.copy(), base_triangle.triangles.copy())
 
     # Меняем противоположную к ребру base_edge вершину на new_node
     new_triangle.nodes[opp_node_index] = new_node
@@ -63,60 +63,6 @@ def create_triangle_base_on(base_triangle, base_edge, new_node):
         opp_triangle.triangles[opp_node_index] = new_triangle
 
     return new_triangle
-
-
-def check_on_point_case(triangle, new_node, info):
-    for node in triangle.nodes:
-        if node == new_node:
-            info["position"] = 1
-            return True
-
-    return False
-
-
-def check_on_edge_case(triangle, new_node, info):
-    def signed_area(a, b, c):
-        return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)
-
-    for edge in triangle.get_edges():
-        if signed_area(edge.first, edge.second, new_node) == 0:
-            info["position"] = 2
-            info["occupied edge"] = edge
-            return True
-
-    return False
-
-
-def check_inside_case(triangle, new_node, info):
-
-    def triangle_area(n1, n2, n3):
-        s = 1 / 2 * (n1.x * (n2.y - n3.y) + n2.x * (n3.y - n1.y) + n3.x * (n1.y - n2.y))
-        return s
-
-    def is_inside_case():
-        nodes = triangle.nodes
-
-        base_triangle_area = triangle_area(nodes[0], nodes[1], nodes[2])
-        sub_triangle1_area = triangle_area(new_node, nodes[1], nodes[2])
-        if sub_triangle1_area < 0:
-            print("AAA")
-        sub_triangle2_area = triangle_area(nodes[0], new_node, nodes[2])
-        if sub_triangle2_area < 0:
-            print("AAA")
-        sub_triangle3_area = triangle_area(nodes[0], nodes[1], new_node)
-        if sub_triangle3_area < 0:
-            print("AAA")
-
-        if base_triangle_area == (sub_triangle1_area + sub_triangle2_area + sub_triangle3_area):
-            return True
-        else:
-            return False
-
-    if is_inside_case():
-         info["position"] = 3
-         return True
-    else:
-        return False
 
 
 def check_node_position_relative_triangle(triangle, new_node):
@@ -398,15 +344,5 @@ def simple_iterative_method(nodes, triangulation=None):
             flipping_edge, is_correct = delaunay_check(triangle)
             if not is_correct:
                 flip(triangle, flipping_edge)
-
-        # something_wrong = True
-        #
-        # while something_wrong:
-        #     something_wrong = False
-        #     for triangle in triangulation.triangles:
-        #         flipping_edge, is_correct = delaunay_check(triangle)
-        #         if not is_correct:
-        #             something_wrong = True
-        #             flip(triangle, flipping_edge)
 
     return triangulation
