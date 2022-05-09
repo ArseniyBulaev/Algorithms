@@ -4,19 +4,23 @@ class Node(object):
         self.label = label
         # Смежные вершины
         self.weighted_adjacent_nodes = []
-    
-    def add_adjacent_node(self, adjacent_node, weight):  
-        # Добавление смежной вершины вместе с её стоимостью
-        self.weighted_adjacent_nodes.append((adjacent_node, weight))
 
-    
+    # Добавление смежной вершины вместе с её стоимостью
+    def add_adjacent_node(self, adjacent_node, weight):  
+        self.weighted_adjacent_nodes.append((adjacent_node, weight))
+   
     def __repr__(self):
+        # В качестве текстового представления выводится метка
         return self.label
 
 class Graph(object):
     def __init__(self, nodes):
+        # Список узлов графа
         self.nodes = nodes
 
+    # Метод связывания двух узлов.
+    # Узлы должны быть в графе.
+    # Если это не так, метод инициирует завершение программы 
     def connect_nodes(self, first_node, second_node, weight):
         error_message = "узел с меткой '{0}' не принадлежит графу"
 
