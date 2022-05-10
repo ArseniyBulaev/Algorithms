@@ -12,6 +12,8 @@ def minimum_cut(G_input):
     G = deepcopy(G_input)
     minimum_cut = 100000
     N = G.nodes
+    
+    # Для отладки
     i = 1
 
     # Пока множество вершин имеет болеше одной вершины
@@ -29,6 +31,7 @@ def minimum_cut(G_input):
             # Обновление текущего минимального разреза
             minimum_cut = cut_of_the_phase
         
+        # Для отладки
         gviz_graph = gviz_s.graph_object_to_graphviz_object(G, graph_name=str(i))
         gviz_s.render_graph(gviz_graph)
         i += 1

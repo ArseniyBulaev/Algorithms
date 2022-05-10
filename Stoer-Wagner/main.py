@@ -38,10 +38,8 @@ def main():
     gviz_graph = gviz_s.graph_object_to_graphviz_object(graph, graph_name="0")
     gviz_s.render_graph(gviz_graph)
     
-    #print(graph.merge_nodes(nodes[4], nodes[0]))
     print(alg.minimum_cut(graph))
-    #print(graph.nodes)
-    #print(graph.nodes)
+    
 
     
 

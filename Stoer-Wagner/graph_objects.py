@@ -5,6 +5,7 @@ class Node(object):
         # Смежные вершины c весами
         self.weighted_adjacent_nodes = dict()
     
+    
    # Проверка того, что вершина находится в списке смежности текущей вершины
     def is_in_adjacent_nodes(self, adjacent_node):
         return adjacent_node in self.weighted_adjacent_nodes.keys()
@@ -95,6 +96,14 @@ class Graph(object):
                # Суммирование веса этой вершины со смежной вершиной в first
                first.weighted_adjacent_nodes[adjacent_node] += local_cut
                adjacent_node.weighted_adjacent_nodes[first] += local_cut
+
+            # Иначе, если она не равна  first  
+            elif adjacent_node is not first:
+                
+                # Переподвязывание её к смежным вершинам first
+                weight = adjacent_node.weighted_adjacent_nodes[second]
+                first.add_adjacent_node(adjacent_node, weight)
+                adjacent_node.add_adjacent_node(first, weight)
             
             # Сохранение величины глобального разреза
             global_cut += local_cut
